@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Interactif</title>
+    <link rel="stylesheet" href="QUIZ_STYLE.CSS">
+</head>
+<body>
+    <div id="quiz-container">
+        <div id="home">
+            <img src="quiz time.jpg" >
+            <button id="start-btn">Commencer le Quiz</button>
+            <button id="rules-btn">Voir les règles</button>
+        </div>
+
+        <div id="rules-screen" style="display: none;">
+            <h2>Règles du Quiz</h2>
+            <p>Chaque question doit être répondue dans un temps limité (15 secondes).</p>
+            <p>Si le temps est écoulé, la question est automatiquement marquée comme incorrecte.</p>
+            <p>À la fin du quiz, le score est affiché avec la possibilité de recommencer ou de quitter.</p>
+            <button id="close-rules">Fermer</button>
+        </div>
+
+        <div id="quiz-screen" style="display: none;">
+            <h2 id="question-title">Question 1</h2>
+            <div id="options-container">
+                <!-- Options de réponse seront ajoutées ici -->
+            </div>
+            <p>Temps restant: <span id="timer">15</span>s</p>
+            <p>Progression: <span id="progress">0%</span></p>
+        </div>
+
+        <div id="result-screen" style="display: none;">
+            <h2>Votre Score</h2>
+            <p id="final-score">0/0</p>
+            <button id="rejouer-btn">Rejouer</button>
+            <button id="quitter-btn">Quitter</button>
+        </div>
+    </div>
+
+    <script>
+    const questions = [
+        {
+            question: "Le Japon est un pays situé en Afrique.",
+            options: ["Vrai", "Faux"],
+            correctAnswer: "Faux"
+        },
+        {
+            question: "Le Brésil est le plus grand pays d'Amérique du Sud.",
+            options: ["Vrai", "Faux"],
+            correctAnswer: "Vrai"
+        },
+        {
+            question: "La Russie est le plus petit pays du monde en termes de superficie.",
+            options: ["Vrai", "Faux"],
+            correctAnswer: "Faux"
+        },
+        {
+            question: "L'Australie est un continent et un pays.",
+            options: ["Vrai", "Faux"],
+            correctAnswer: "Vrai"
+        },
+        {
+            question: "Le Maroc est situé en Afrique du Nord.",
+            options: ["Vrai", "Faux"],
+            correctAnswer: "Vrai"
+        },
+        {
+            question: "L'Égypte se trouve à la fois en Afrique et en Asie.",
+            options: ["Vrai", "Faux"],
+            correctAnswer: "Vrai"
+        },
+        {
+            question: "L'Inde est un pays situé en Europe.",
+            options: ["Vrai", "Faux"],
+            correctAnswer: "Faux"
+        },
+        {
+            question: "La Chine est le pays le plus peuplé du monde.",
+            options: ["Vrai", "Faux"],
+            correctAnswer: "Vrai"
+        },
+        {
+            question: "Le Mexique est un pays situé en Europe.",
+            options: ["Vrai", "Faux"],
+            correctAnswer: "Faux"
+        },
+        {
+            question: "Le Sahara est un désert situé en Australie.",
+            options: ["Vrai", "Faux"],
+            correctAnswer: "Faux"
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timerInterval;
+
+    document.getElementById("start-btn").addEventListener("click", startQuiz);
+    document.getElementById("rules-btn").addEventListener("click", showRules);
+    document.getElementById("close-rules").addEventListener("click", closeRules);
+    document.getElementById("rejouer-btn").addEventListener("click", restartQuiz);
+    document.getElementById("quitter-btn").addEventListener("click", exitQuiz);
+
+    function startQuiz() {
+        // Correction de l'ID pour l'écran d'accueil
+        document.getElementById("home").style.display = "none";  // Modification ici
+        document.getElementById("quiz-screen").style.display = "block";
+        loadQuestion();
+    }
+
+    function showRules() {
+        document.getElementById("rules-screen").style.display = "block";
+    }
+
+    function closeRules() {
+        document.getElementById("rules-screen").style.display = "none";
+    }
+
+    function loadQuestion() {
+        const question = questions[currentQuestionIndex];
+        document.getElementById("question-title").innerText = question.question;
+
+        const optionsContainer = document.getElementById("options-container");
+        optionsContainer.innerHTML = "";
+        question.options.forEach(option => {
+            const button = document.createElement("button");
+            button.innerText = option;
+            button.addEventListener("click", () => checkAnswer(option));
+            optionsContainer.appendChild(button);
+        });
+
+        startTimer();
+    }
+
+    function startTimer() {
+        let timeLeft = 15;
+        document.getElementById("timer").innerText = timeLeft;
+        document.getElementById("progress").innerText = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById("timer").innerText = timeLeft;
+            if (timeLeft === 0) {
+                clearInterval(timerInterval);
+                checkAnswer(null);  
+            }
+        }, 1000);
+    }
+
+    function checkAnswer(selectedAnswer) {
+        clearInterval(timerInterval);
+
+        const question = questions[currentQuestionIndex];
+        const correctAnswer = question.correctAnswer;
+
+        if (selectedAnswer === correctAnswer) {
+            score++;
+        }
+
+        const buttons = document.querySelectorAll("#options-container button");
+        buttons.forEach(button => {
+            button.disabled = true;
+            if (button.innerText === correctAnswer) {
+                button.style.backgroundColor = "green";
+            } else if (button.innerText === selectedAnswer && selectedAnswer !== correctAnswer) {
+                button.style.backgroundColor = "red";
+            }
+        });
+
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            setTimeout(() => {
+                loadQuestion();
+            }, 2000);
+        } else {
+            setTimeout(() => {
+                showResults();
+            }, 2000);
+        }
+    }
+
+    function showResults() {
+        document.getElementById("quiz-screen").style.display = "none";
+        document.getElementById("result-screen").style.display = "block";
+        document.getElementById("final-score").innerText = `${score} / ${questions.length}`;
+    }
+
+    function restartQuiz() {
+        score = 0;
+        currentQuestionIndex = 0;
+        document.getElementById("result-screen").style.display = "none";
+        startQuiz();
+    }
+
+    function exitQuiz() {
+        window.location.reload();
+    }
+
+    </script>
+</body>
+</html>
